@@ -1,90 +1,93 @@
-DROP SCHEMA IF EXISTS SuperStore;
+CREATE DATABASE `SuperStore`;
 
-CREATE SCHEMA SuperStore;
+USE `SuperStore`;
 
-USE SuperStore;
+-- superstore.address definition
 
-CREATE TABLE SuperStore.customer (
-	customer_id INT auto_increment NOT NULL,
-	first_name varchar(100) NULL,
-	last_name varchar(100) NULL,
-	email varchar(100) NULL,
-	phone varchar(100) NULL,
-	address_id INT NULL,
-	CONSTRAINT customer_pk PRIMARY KEY (customer_id)
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8
-COLLATE=utf8_general_ci;
+CREATE TABLE `address` (
+  `address_id` int NOT NULL AUTO_INCREMENT,
+  `street` varchar(100) NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `state` varchar(100) NOT NULL,
+  `zip` varchar(100) NOT NULL,
+  PRIMARY KEY (`address_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE SuperStore.`order` (
-	order_id INT auto_increment NOT NULL,
-	customer_id INT NULL,
-	address_id INT NULL,
-	CONSTRAINT order_pk PRIMARY KEY (order_id)
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8
-COLLATE=utf8_general_ci;
 
-CREATE TABLE SuperStore.product (
-	product_id INT auto_increment NOT NULL,
-	product_name varchar(100) NULL,
-	description varchar(100) NULL,
-	weight DECIMAL(10,2) NULL,
-	base_cost DECIMAL(10,2) NULL,
-	CONSTRAINT product_pk PRIMARY KEY (product_id)
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8
-COLLATE=utf8_general_ci;
+-- superstore.product definition
 
-CREATE TABLE SuperStore.order_item (
-	order_id INT NULL,
-	product_id INT NULL,
-	quantity INT NULL,
-	price DECIMAL(10,2) NULL
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8
-COLLATE=utf8_general_ci;
+CREATE TABLE `product` (
+  `product_id` int NOT NULL AUTO_INCREMENT,
+  `product_name` varchar(100) NOT NULL,
+  `description` varchar(100) NOT NULL,
+  `weight` int NOT NULL,
+  `base_cost` int NOT NULL,
+  PRIMARY KEY (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE SuperStore.address (
-	address_id INT auto_increment NOT NULL,
-	street varchar(100) NULL,
-	city varchar(100) NULL,
-	state varchar(100) NULL,
-	zip INT NULL,
-	CONSTRAINT address_pk PRIMARY KEY (address_id)
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8
-COLLATE=utf8_general_ci;
 
-CREATE TABLE SuperStore.warehouse (
-	warehouse_id INT auto_increment NOT NULL,
-	name varchar(100) NULL,
-	address_id INT NULL,
-	CONSTRAINT warehouse_pk PRIMARY KEY (warehouse_id)
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8
-COLLATE=utf8_general_ci;
+-- superstore.customer definition
 
-CREATE TABLE SuperStore.product_warehouse (
-	product_id INT NULL,
-	warehouse_id INT NULL
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8
-COLLATE=utf8_general_ci;
+CREATE TABLE `customer` (
+  `customer_id` int NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(64) NOT NULL,
+  `last_name` varchar(64) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone` varchar(64) NOT NULL,
+  `address_id` int NOT NULL,
+  PRIMARY KEY (`customer_id`),
+  KEY `customer_address_FK` (`address_id`),
+  CONSTRAINT `customer_address_FK` FOREIGN KEY (`address_id`) REFERENCES `address` (`address_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-ALTER TABLE SuperStore.customer ADD CONSTRAINT fk_customer_address_id FOREIGN KEY (address_id) REFERENCES SuperStore.address(address_id) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE SuperStore.`order` ADD CONSTRAINT fk_order_address_id FOREIGN KEY (address_id) REFERENCES SuperStore.address(address_id) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE SuperStore.`order` ADD CONSTRAINT fk_order_customer_id FOREIGN KEY (customer_id) REFERENCES SuperStore.customer(customer_id) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE SuperStore.order_item ADD CONSTRAINT fk_order_item_order_id FOREIGN KEY (order_id) REFERENCES SuperStore.`order`(order_id) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE SuperStore.order_item ADD CONSTRAINT fk_order_item_product_id FOREIGN KEY (product_id) REFERENCES SuperStore.product(product_id) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE SuperStore.warehouse ADD CONSTRAINT fk_warehouse_address_id FOREIGN KEY (address_id) REFERENCES SuperStore.address(address_id) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE SuperStore.product_warehouse ADD CONSTRAINT fk_product_warehouse_product_id FOREIGN KEY (product_id) REFERENCES SuperStore.product(product_id) ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE SuperStore.product_warehouse ADD CONSTRAINT fk_product_warehouse_warehouse_id FOREIGN KEY (warehouse_id) REFERENCES SuperStore.warehouse(warehouse_id) ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- superstore.`order` definition
+
+CREATE TABLE `order` (
+  `order_id` int NOT NULL AUTO_INCREMENT,
+  `customer_id` int NOT NULL,
+  `address_id` int NOT NULL,
+  PRIMARY KEY (`order_id`),
+  KEY `order_customer_FK` (`customer_id`),
+  KEY `order_address_FK` (`address_id`),
+  CONSTRAINT `order_address_FK` FOREIGN KEY (`address_id`) REFERENCES `address` (`address_id`),
+  CONSTRAINT `order_customer_FK` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- superstore.order_item definition
+
+CREATE TABLE `order_item` (
+  `order_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `quantity` int NOT NULL,
+  `price` int NOT NULL,
+  KEY `order_item_order_FK` (`order_id`),
+  KEY `order_item_product_FK` (`product_id`),
+  CONSTRAINT `order_item_order_FK` FOREIGN KEY (`order_id`) REFERENCES `order` (`order_id`),
+  CONSTRAINT `order_item_product_FK` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- superstore.warehouse definition
+
+CREATE TABLE `warehouse` (
+  `warehouse_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `address_id` int NOT NULL,
+  PRIMARY KEY (`warehouse_id`),
+  KEY `warehouse_address_FK` (`address_id`),
+  CONSTRAINT `warehouse_address_FK` FOREIGN KEY (`address_id`) REFERENCES `address` (`address_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- superstore.product_warehouse definition
+
+CREATE TABLE `product_warehouse` (
+  `product_id` int NOT NULL,
+  `warehouse_id` int NOT NULL,
+  KEY `product_warehouse_product_FK` (`product_id`),
+  KEY `product_warehouse_warehouse_FK` (`warehouse_id`),
+  CONSTRAINT `product_warehouse_product_FK` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
+  CONSTRAINT `product_warehouse_warehouse_FK` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouse` (`warehouse_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
